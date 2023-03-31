@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Res } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { LoginDto, SignUpDto } from "./authDto";
 
-@Controller("api/user")
+@Controller("auth")
 export class AuthController {
   constructor(private readonly userService: AuthService) {}
 
@@ -14,5 +14,10 @@ export class AuthController {
   @Post("create-user")
   async createUser(@Body() dto: SignUpDto, @Res() res) {
     return this.userService.createUser(dto, res);
+  }
+
+  @Get("sign-out")
+  signOut(@Res() res) {
+    return this.userService.logout(res);
   }
 }

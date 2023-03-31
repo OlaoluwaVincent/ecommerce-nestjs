@@ -1,3 +1,6 @@
+-- CreateEnum
+CREATE TYPE "UserRole" AS ENUM ('BUYER', 'SELLER', 'ADMIN');
+
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
@@ -6,6 +9,7 @@ CREATE TABLE "User" (
     "email" TEXT NOT NULL,
     "userName" TEXT NOT NULL,
     "hashedPassword" TEXT NOT NULL,
+    "role" "UserRole" NOT NULL DEFAULT 'BUYER',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL
 );
