@@ -20,7 +20,9 @@ export class UserService {
     private jwtService: JwtService,
     private authService: AuthService,
   ) {}
+
   // ? THIS IS ONLY FOR ADMINS TO GET ALL USERS.
+
   async findAll(token: string, res: Response) {
     // Todo: sign token
     const id = await this.signToken(token);
@@ -57,6 +59,7 @@ export class UserService {
   }
 
   // ? THIS IS USED TO GET A USER DETAIL
+
   async findOne(id: string, token: string, res: Response) {
     // Todo: Sign the token
     const userId = await this.signToken(token);
@@ -98,6 +101,7 @@ export class UserService {
   }
 
   // ? This is speicific for a user
+
   async update(
     id: string,
     updateUserDto: UpdateUserDto,
@@ -132,6 +136,7 @@ export class UserService {
   }
 
   // ? This is to delete a user account
+
   async remove(id: string, token: string, res: Response) {
     const userId = await this.signToken(token);
     this.InvalidTokenResponse(userId);
@@ -148,7 +153,6 @@ export class UserService {
       throw new BadRequestException("Failed to Delete user, try again later");
     }
     this.authService.logout(res);
-    // res.status(HttpStatus.Ok)
   }
 
   // ? HELPER FUNCTIONS
