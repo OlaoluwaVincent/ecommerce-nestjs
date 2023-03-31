@@ -5,12 +5,12 @@ import {
   ForbiddenException,
 } from "@nestjs/common";
 import { Response } from "express";
-import { LoginDto, SignUpDto } from "./userDto";
+import { LoginDto, SignUpDto } from "./authDto";
 import { PrismaService } from "prisma/prisma.service";
 import * as bcrypt from "bcrypt";
 
 @Injectable()
-export class UserService {
+export class AuthService {
   constructor(private userDB: PrismaService) {}
 
   async login(dto: LoginDto, res: Response) {
@@ -44,6 +44,7 @@ export class UserService {
       where: { email },
     });
     if (foundUser) {
+      console.log("yes");
       throw new BadRequestException(`${email} already exist please login`);
     }
 

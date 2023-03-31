@@ -2,9 +2,9 @@
   "name": "ecommerce",
   "version": "0.0.1",
   "description": "",
-  "author": "",
+  "author": "Olaolwua Vincent",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "SELF",
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
