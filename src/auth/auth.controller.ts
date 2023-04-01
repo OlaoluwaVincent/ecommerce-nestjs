@@ -20,4 +20,8 @@ export class AuthController {
   signOut(@Res() res) {
     return this.userService.logout(res);
   }
+  @Post("create-user/retail")
+  async retailCreateUser(@Body() dto: SignUpDto, @Res() res) {
+    return this.userService.retailCreateUser(dto, res);
+  }
 }

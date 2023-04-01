@@ -7,9 +7,7 @@ import {
 } from "@nestjs/common";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { PrismaService } from "prisma/prisma.service";
-import { JwtService } from "@nestjs/jwt";
-import { jwtSecret } from "src/constants";
-import { Response } from "express";
+import { Response, Request } from "express";
 import { User } from "@prisma/client";
 import { AuthService } from "src/auth/auth.service";
 
@@ -17,15 +15,14 @@ import { AuthService } from "src/auth/auth.service";
 export class UserService {
   constructor(
     private userDb: PrismaService,
-    private jwtService: JwtService,
     private authService: AuthService,
   ) {}
 
   // ? THIS IS ONLY FOR ADMINS TO GET ALL USERS.
 
-  async findAll(token: string, res: Response) {
-    // Todo: sign token
-    const id = await this.signToken(token);
+  async findAll(request: Request, res: Response) {
+    // Todo: Sign the token
+    const { userId: id } = request.user;
 
     this.InvalidTokenResponse(id);
 
@@ -60,9 +57,9 @@ export class UserService {
 
   // ? THIS IS USED TO GET A USER DETAIL
 
-  async findOne(id: string, token: string, res: Response) {
+  async findOne(id: string, request: Request, res: Response) {
     // Todo: Sign the token
-    const userId = await this.signToken(token);
+    const { userId } = request.user;
 
     this.InvalidTokenResponse(userId);
 
@@ -105,10 +102,10 @@ export class UserService {
   async update(
     id: string,
     updateUserDto: UpdateUserDto,
-    token: string,
+    request: Request,
     res: Response,
   ) {
-    const userId = await this.signToken(token);
+    const { userId } = request.user;
     const { email, firstName, lastName, password, userName } = updateUserDto;
 
     this.InvalidTokenResponse(userId);
@@ -137,8 +134,8 @@ export class UserService {
 
   // ? This is to delete a user account
 
-  async remove(id: string, token: string, res: Response) {
-    const userId = await this.signToken(token);
+  async remove(id: string, request: Request, res: Response) {
+    const { userId } = request.user;
     this.InvalidTokenResponse(userId);
     if (id !== userId) {
       throw new BadRequestException(
@@ -156,22 +153,6 @@ export class UserService {
   }
 
   // ? HELPER FUNCTIONS
-
-  async signToken(token: string) {
-    try {
-      const payload = await this.jwtService.verifyAsync(token, {
-        secret: jwtSecret,
-        algorithms: ["HS256"],
-      });
-      if (payload.id) {
-        return payload.id;
-      }
-      return null;
-    } catch (err) {
-      throw new UnauthorizedException(err.message);
-    }
-  }
-
   InvalidTokenResponse(tokenId: string) {
     if (!tokenId) {
       throw new ForbiddenException("Unauthorized");

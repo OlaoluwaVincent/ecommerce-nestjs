@@ -14,29 +14,25 @@ import { UpdateUserDto } from "./dto/update-user.dto";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { Request, Response } from "express";
 
+@UseGuards(JwtAuthGuard)
 @Controller("user")
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @UseGuards(JwtAuthGuard)
   @Get()
   async findAll(@Req() request: Request, @Res() res: Response) {
-    const token: string = request.cookies.token;
-    return this.userService.findAll(token, res);
+    return this.userService.findAll(request, res);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Get(":id")
   findOne(
     @Param("id") id: string,
     @Req() request: Request,
     @Res() res: Response,
   ) {
-    const token: string = request.cookies.token;
-    return this.userService.findOne(id, token, res);
+    return this.userService.findOne(id, request, res);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Patch(":id")
   update(
     @Param("id") id: string,
@@ -44,18 +40,15 @@ export class UserController {
     @Req() request: Request,
     @Res() res: Response,
   ) {
-    const token: string = request.cookies.token;
-    return this.userService.update(id, updateUserDto, token, res);
+    return this.userService.update(id, updateUserDto, request, res);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Delete(":id")
   remove(
     @Param("id") id: string,
     @Req() request: Request,
     @Res() res: Response,
   ) {
-    const token: string = request.cookies.token;
-    return this.userService.remove(id, token, res);
+    return this.userService.remove(id, request, res);
   }
 }

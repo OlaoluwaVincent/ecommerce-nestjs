@@ -33,7 +33,4 @@ export class SignUpDto {
   @IsNotEmpty()
   @IsString()
   public lastName: string;
-
-  @IsString()
-  public role?: string;
 }

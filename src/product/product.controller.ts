@@ -7,11 +7,14 @@ import {
   Param,
   Delete,
   UseGuards,
+  Req,
+  Res,
 } from "@nestjs/common";
 import { ProductService } from "./product.service";
 import { CreateProductDto } from "./dto/create-product.dto";
 import { UpdateProductDto } from "./dto/update-product.dto";
 import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
+import { Request, Response } from "express";
 
 @Controller("product")
 export class ProductController {
@@ -19,7 +22,11 @@ export class ProductController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createProductDto: CreateProductDto) {
+  create(
+    @Body() createProductDto: CreateProductDto,
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
     return this.productService.create(createProductDto);
   }
 

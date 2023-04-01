@@ -39,13 +39,14 @@ export class AuthService {
     const token = await this.signToken({
       id: user.id,
       email: user.email,
+      role: user.role,
     });
     // todo: check availability of token
     if (!token) {
       throw new ForbiddenException("Unauthorized");
     }
     // todo: Add token to cookie
-    res.cookie("token", token);
+    res.cookie("token", token, { httpOnly: true });
 
     delete user.hashedPassword;
 
@@ -82,13 +83,57 @@ export class AuthService {
     const token = await this.signToken({
       id: newUser.id,
       email: newUser.email,
+      role: newUser.role,
     });
     // todo: check availability of token
     if (!token) {
       throw new ForbiddenException("Unauthorized");
     }
     // todo: Add token to cookie
-    res.cookie("token", token);
+    res.cookie("token", token, { httpOnly: true });
+    delete newUser.hashedPassword;
+
+    res.status(HttpStatus.CREATED).json(newUser);
+  }
+  // ? RETAILER CREATE NEW USER //
+  async retailCreateUser(dto: SignUpDto, res: Response) {
+    const { password, email, userName, firstName, lastName } = dto;
+
+    const foundUser = await this.userDB.user.findUnique({
+      where: { email },
+    });
+    if (foundUser) {
+      throw new BadRequestException(`${email} already exist please login`);
+    }
+
+    const hashedPassword = await this.hashPassword(password);
+
+    const newUser = await this.userDB.user.create({
+      data: {
+        hashedPassword,
+        email: email.toLowerCase(),
+        userName,
+        firstName,
+        lastName,
+        role: "SELLER",
+      },
+    });
+
+    if (!newUser) {
+      throw new BadRequestException("Something went wrong");
+    }
+    // todo: assign token to user
+    const token = await this.signToken({
+      id: newUser.id,
+      email: newUser.email,
+      role: newUser.role,
+    });
+    // todo: check availability of token
+    if (!token) {
+      throw new ForbiddenException("Unauthorized");
+    }
+    // todo: Add token to cookie
+    res.cookie("token", token, { httpOnly: true });
     delete newUser.hashedPassword;
 
     res.status(HttpStatus.CREATED).json(newUser);
@@ -111,7 +156,7 @@ export class AuthService {
     return await bcrypt.compare(password, hashedPassword);
   }
 
-  async signToken(args: { id: string; email: string }) {
+  async signToken(args: { id: string; email: string; role: string }) {
     const payload = args;
     return this.jwt.signAsync(payload, { secret: jwtSecret });
   }
