@@ -59,7 +59,7 @@ export class UserService {
 
   async findOne(id: string, request: Request, res: Response) {
     // Todo: Sign the token
-    const { userId } = request.user;
+    const { userId } = request.user ? request.user : null;
 
     this.InvalidTokenResponse(userId);
 
@@ -74,6 +74,9 @@ export class UserService {
 
     // ? If it is the logged in user return all details else return some details
     let user: User;
+    // if (validUser.id !== id) {
+    //   throw
+    // }
 
     if (validUser.id === id) {
       user = await this.userDb.user.findUnique({ where: { id } });
@@ -83,6 +86,9 @@ export class UserService {
       user = await this.userDb.user.findUnique({
         where: { id },
       });
+      if (!user) {
+        throw new BadRequestException("Invalid Request");
+      }
       delete user.hashedPassword;
       delete user.createdAt;
       delete user.updatedAt;

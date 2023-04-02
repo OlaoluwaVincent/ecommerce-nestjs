@@ -20,37 +20,42 @@ import { Request, Response } from "express";
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
-  @UseGuards(JwtAuthGuard)
   @Post()
+  @UseGuards(JwtAuthGuard)
   create(
     @Body() createProductDto: CreateProductDto,
     @Req() req: Request,
     @Res() res: Response,
   ) {
-    return this.productService.create(createProductDto);
+    return this.productService.create(createProductDto, req, res);
   }
 
-  @UseGuards(JwtAuthGuard)
+  // ? Open to the public
   @Get()
-  findAll() {
-    return this.productService.findAll();
+  findAll(@Res() res: Response) {
+    return this.productService.findAll(res);
   }
 
-  @UseGuards(JwtAuthGuard)
+  // ? Open to the public
   @Get(":id")
-  findOne(@Param("id") id: string) {
-    return this.productService.findOne(+id);
+  findOne(@Param("id") id: string, @Req() req: Request, @Res() res: Response) {
+    return this.productService.findOne(id, req, res);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Patch(":id")
-  update(@Param("id") id: string, @Body() updateProductDto: UpdateProductDto) {
-    return this.productService.update(+id, updateProductDto);
+  @UseGuards(JwtAuthGuard)
+  update(
+    @Param("id") id: string,
+    @Body() updateProductDto: UpdateProductDto,
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
+    return this.productService.update(id, updateProductDto, req, res);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Delete(":id")
-  remove(@Param("id") id: string) {
-    return this.productService.remove(+id);
+  @UseGuards(JwtAuthGuard)
+  remove(@Param("id") id: string, @Req() req: Request, @Res() res: Response) {
+    return this.productService.remove(id, req, res);
   }
 }

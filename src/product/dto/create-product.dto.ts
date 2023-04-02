@@ -1,19 +1,37 @@
+import { Type } from "class-transformer";
 import {
   IsNotEmpty,
   IsNumber,
   IsPositive,
   IsString,
-  IsArray,
-  ValidateNested,
   IsOptional,
   IsBoolean,
+  IsArray,
 } from "class-validator";
-import { Type } from "class-transformer";
+
+export interface ImageSides {
+  front: string | null;
+  back: string | null;
+  left_side: string | null;
+  right_side: string | null;
+}
+
+export type Category =
+  | "Electronics"
+  | "Fashion"
+  | "Homes"
+  | "Beauty"
+  | "Sports"
+  | "Health"
+  | "Games"
+  | "Food"
+  | "Office"
+  | "Others";
 
 export class CreateProductDto {
   @IsNotEmpty()
   @IsString()
-  readonly name: string;
+  readonly title: string;
 
   @IsNotEmpty()
   @IsString()
@@ -21,32 +39,27 @@ export class CreateProductDto {
 
   @IsNotEmpty()
   @IsNumber()
-  @IsPositive()
   readonly price: number;
-
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => String)
-  readonly images: string[];
 
   @IsNotEmpty()
   @IsNumber()
-  @IsPositive()
   readonly quantity: number;
 
+  @IsNotEmpty()
+  readonly images: ImageSides;
+
   @IsArray()
-  @ValidateNested({ each: true })
+  readonly categories: Category[];
+
+  @IsOptional()
+  @IsArray()
   @Type(() => String)
-  readonly categories: string[];
+  readonly details?: string[];
 
   @IsOptional()
   @IsNumber()
   @IsPositive()
   readonly discount?: number;
-
-  @IsOptional()
-  @IsString()
-  readonly details?: string;
 
   @IsOptional()
   @IsBoolean()
