@@ -4,16 +4,17 @@ import {
   ForbiddenException,
   BadRequestException,
   HttpStatus,
+  NotFoundException,
 } from "@nestjs/common";
 import { PrismaService } from "prisma/prisma.service";
 import { CreateProductDto } from "./dto/create-product.dto";
 import { UpdateProductDto } from "./dto/update-product.dto";
 import { Request, Response } from "express";
-
 @Injectable()
 export class ProductService {
   constructor(private Database: PrismaService) {}
 
+  // ? Create a product
   async create(
     createProductDto: CreateProductDto,
     req: Request,
@@ -24,17 +25,17 @@ export class ProductService {
     if (user.role !== "SELLER") {
       throw new ForbiddenException("Forbidden");
     }
+
     const createdProduct = await this.Database.product.create({
       data: {
         ...createProductDto,
-        images: { ...createProductDto.images },
         owner: {
-          connect: { id: user.userId }, // replace with the actual user ID
+          connect: { id: user.userId },
         },
       },
     });
     if (!createdProduct) {
-      throw new BadRequestException("Something went wront, try again later");
+      throw new BadRequestException("Something went wrong, try again later");
     }
 
     res.status(HttpStatus.CREATED).json({
@@ -43,6 +44,7 @@ export class ProductService {
     });
   }
 
+  // ? Find All products
   async findAll(res: Response) {
     const products = await this.Database.product.findMany();
     res
@@ -50,14 +52,16 @@ export class ProductService {
       .json({ successful: true, length: products.length, products });
   }
 
+  // ? Find One product
   async findOne(id: string, req: Request, res: Response) {
     const product = await this.Database.product.findUnique({ where: { id } });
     if (!product) {
-      throw new BadRequestException("Product does not exists");
+      throw new NotFoundException("Product does not exists");
     }
     res.status(HttpStatus.OK).json({ successful: true, product });
   }
 
+  // ? Update Product
   async update(
     id: string,
     updateProductDto: UpdateProductDto,
@@ -71,17 +75,16 @@ export class ProductService {
       select: { ownerId: true },
     });
     if (!owner) {
-      throw new ForbiddenException("You do not own this resource");
+      throw new NotFoundException("This resource does not exist");
     }
 
     if (owner.ownerId !== userId) {
-      throw new ForbiddenException("You do not own this resource");
+      throw new UnauthorizedException("You do not own this resource");
     }
     const updatedProduct = await this.Database.product.update({
       where: { id },
       data: {
         ...updateProductDto,
-        images: { ...updateProductDto.images },
       },
     });
     if (!updatedProduct) {
@@ -95,6 +98,7 @@ export class ProductService {
     });
   }
 
+  // ? Remove Product
   async remove(id: string, req: Request, res: Response) {
     const { userId } = req.user;
     this.InvalidTokenResponse(userId);
@@ -104,11 +108,11 @@ export class ProductService {
       select: { ownerId: true },
     });
     if (!owner) {
-      throw new ForbiddenException("You do not own this resource");
+      throw new NotFoundException("This resource does not exist");
     }
 
     if (owner.ownerId !== userId) {
-      throw new ForbiddenException("You do not own this resource");
+      throw new UnauthorizedException("You do not own this resource");
     }
     const deletedProduct = await this.Database.product.delete({
       where: { id },
@@ -121,6 +125,8 @@ export class ProductService {
       .json({ successful: true, message: "Resource deleted successfully." });
   }
 
+  // ? Utilities
+  // ? Validate the token
   InvalidTokenResponse(tokenId: string) {
     if (!tokenId) {
       throw new ForbiddenException("Unauthorized");

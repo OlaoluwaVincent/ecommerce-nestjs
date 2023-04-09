@@ -7,13 +7,23 @@ import {
   IsOptional,
   IsBoolean,
   IsArray,
+  ValidateNested,
+  IsDefined,
 } from "class-validator";
+import { Express } from "express";
 
-export interface ImageSides {
-  front: string | null;
-  back: string | null;
-  left_side: string | null;
-  right_side: string | null;
+export class FileUploadDto {
+  @IsDefined()
+  @Type(() => String)
+  filename: string;
+
+  @IsDefined()
+  @Type(() => String)
+  mimetype: string;
+
+  @IsDefined()
+  @Type(() => Buffer)
+  buffer: Buffer;
 }
 
 export type Category =
@@ -45,10 +55,11 @@ export class CreateProductDto {
   @IsNumber()
   readonly quantity: number;
 
-  @IsNotEmpty()
-  readonly images: ImageSides;
+  @IsArray()
+  images: string[];
 
   @IsArray()
+  @Type(() => String)
   readonly categories: Category[];
 
   @IsOptional()

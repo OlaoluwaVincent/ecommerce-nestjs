@@ -1,5 +1,9 @@
 import { PartialType } from "@nestjs/mapped-types";
-import { Category, CreateProductDto, ImageSides } from "./create-product.dto";
+import {
+  Category,
+  CreateProductDto,
+  FileUploadDto,
+} from "./create-product.dto";
 
 import {
   IsNumber,
@@ -8,6 +12,7 @@ import {
   IsArray,
   IsOptional,
   IsBoolean,
+  ValidateNested,
 } from "class-validator";
 import { Type } from "class-transformer";
 
@@ -29,10 +34,12 @@ export class UpdateProductDto extends PartialType(CreateProductDto) {
   readonly quantity?: number;
 
   @IsOptional()
-  readonly images?: ImageSides;
+  @IsArray()
+  images: string[];
 
   @IsOptional()
   @IsArray()
+  @Type(() => String)
   readonly categories?: Category[];
 
   @IsOptional()
