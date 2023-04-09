@@ -5,9 +5,11 @@ import { UserModule } from "./user/user.module";
 import { ProductModule } from "./product/product.module";
 import { v2 as cloudinary } from "cloudinary";
 import { CLOUD_NAME, API_KEY, API_SECRET } from "./constants";
-import { CommentModule } from './comment/comment.module';
+import { CommentModule } from "./comment/comment.module";
+import { AppController } from "./app.controller";
 @Module({
   imports: [AuthModule, PrismaModule, UserModule, ProductModule, CommentModule],
+  controllers: [AppController],
 })
 export class AppModule {
   constructor() {
