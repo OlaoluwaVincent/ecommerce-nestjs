@@ -6,28 +6,45 @@ import {
   Param,
   Delete,
   UseGuards,
+  Req,
+  Res,
 } from "@nestjs/common";
 import { CommentService } from "./comment.service";
 import { CreateCommentDto } from "./dto/create-comment.dto";
 import { JwtAuthGuard } from "src/auth/jwt-auth.guard";
+import { Request, Response } from "express";
 
 @Controller("product/:productId/comment")
-@UseGuards(JwtAuthGuard)
 export class CommentController {
   constructor(private readonly commentService: CommentService) {}
-
   @Post()
-  create(@Body() createCommentDto: CreateCommentDto) {
-    return this.commentService.create(createCommentDto);
+  @UseGuards(JwtAuthGuard)
+  create(
+    @Body() createCommentDto: CreateCommentDto,
+    @Param("productId") productId: string,
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
+    return this.commentService.create(createCommentDto, req, res, productId);
   }
 
   @Get()
-  findAll() {
-    return this.commentService.findAll();
+  findAll(
+    @Param("productId") productId: string,
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
+    return this.commentService.findAll(res, productId);
   }
 
-  @Delete(":id")
-  remove(@Param("id") id: string) {
-    return this.commentService.remove(+id);
+  @Delete(":commentId")
+  @UseGuards(JwtAuthGuard)
+  remove(
+    @Param("productId") productId: string,
+    @Param("commentId") commentId: string,
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
+    return this.commentService.remove(productId, commentId, req, res);
   }
 }
