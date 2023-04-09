@@ -20,6 +20,15 @@ import { Request, Response } from "express";
 import { FilesInterceptor } from "@nestjs/platform-express";
 import { v2 as cloudinary } from "cloudinary";
 import { diskStorage } from "multer";
+import { join } from "path";
+import { tmpdir } from "os";
+
+const storage = diskStorage({
+  destination: join(tmpdir(), "uploads"),
+  filename: (req, file, cb) => {
+    cb(null, `${file.fieldname}-${Date.now()}-${file.originalname}`);
+  },
+});
 @Controller("product")
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
@@ -39,9 +48,7 @@ export class ProductController {
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FilesInterceptor("images", 4, {
-      storage: diskStorage({
-        destination: "./uploads",
-      }),
+      storage,
     }),
   )
   async upload(
