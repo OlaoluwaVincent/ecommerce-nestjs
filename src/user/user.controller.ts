@@ -19,11 +19,6 @@ import { Request, Response } from "express";
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Get()
-  async findAll(@Req() request: Request, @Res() res: Response) {
-    return this.userService.findAll(request, res);
-  }
-
   @Get(":id")
   findOne(
     @Param("id") id: string,

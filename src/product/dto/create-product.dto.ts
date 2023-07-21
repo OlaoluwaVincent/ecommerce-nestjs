@@ -1,16 +1,13 @@
 import { Type } from "class-transformer";
 import {
   IsNotEmpty,
-  IsNumber,
   IsPositive,
   IsString,
   IsOptional,
   IsBoolean,
   IsArray,
-  ValidateNested,
   IsDefined,
 } from "class-validator";
-import { Express } from "express";
 
 export class FileUploadDto {
   @IsDefined()
@@ -41,36 +38,33 @@ export type Category =
 export class CreateProductDto {
   @IsNotEmpty()
   @IsString()
-  readonly title: string;
+  readonly productName: string;
+
+  @IsNotEmpty()
+  @IsString()
+  readonly price: string;
+
+  @IsNotEmpty()
+  @IsString()
+  readonly quantity: string;
+
+  @IsNotEmpty()
+  @IsString()
+  readonly minOrderQuantity: string;
 
   @IsNotEmpty()
   @IsString()
   readonly description: string;
 
-  @IsNotEmpty()
-  @IsNumber()
-  readonly price: number;
-
-  @IsNotEmpty()
-  @IsNumber()
-  readonly quantity: number;
-
-  @IsArray()
-  images: string[];
-
   @IsArray()
   @Type(() => String)
-  readonly categories: Category[];
+  @IsOptional()
+  readonly categories?: Category[];
 
   @IsOptional()
-  @IsArray()
-  @Type(() => String)
-  readonly details?: string[];
-
-  @IsOptional()
-  @IsNumber()
+  @IsString()
   @IsPositive()
-  readonly discount?: number;
+  readonly discount?: string;
 
   @IsOptional()
   @IsBoolean()

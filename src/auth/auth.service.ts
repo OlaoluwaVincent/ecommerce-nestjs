@@ -15,8 +15,55 @@ import { jwtSecret } from "src/constants";
 export class AuthService {
   constructor(private userDB: PrismaService, private jwt: JwtService) {}
 
-  // ? LOGIN A USER //
+  // ? CREATE NEW USER //
+  async createUser(dto: SignUpDto, res: Response) {
+    const { email, password, firstName, lastName, phoneNumber, state, role } =
+      dto;
 
+    const foundUser = await this.userDB.user.findUnique({
+      where: { email },
+    });
+    if (foundUser) {
+      throw new BadRequestException(`${email} already exist please login`);
+    }
+
+    const hashedPassword = await this.hashPassword(password);
+
+    const newUser = await this.userDB.user.create({
+      data: {
+        hashedPassword,
+        email: email.toLowerCase(),
+        firstName,
+        lastName,
+        phoneNumber,
+        state,
+        role: role == "seller" ? "SELLER" : "BUYER",
+      },
+    });
+
+    if (!newUser) {
+      throw new BadRequestException("Something went wrong");
+    }
+    // todo: assign token to user
+    const token = await this.signToken({
+      id: newUser.id,
+      email: newUser.email,
+      role: newUser.role,
+    });
+    // todo: check availability of token
+    if (!token) {
+      throw new ForbiddenException("Unauthorized");
+    }
+    // todo: Add token to cookie
+    res.cookie("token", token, { httpOnly: true });
+    delete newUser.hashedPassword;
+
+    res
+      .status(HttpStatus.CREATED)
+      .json({ status: HttpStatus.CREATED, token, user: newUser });
+  }
+
+  // ? LOGIN A USER //
   async login(dto: LoginDto, res: Response) {
     const { email, password } = dto;
 
@@ -50,93 +97,7 @@ export class AuthService {
 
     delete user.hashedPassword;
 
-    res.status(HttpStatus.OK).json({ user });
-  }
-
-  // ? CREATE NEW USER //
-  async createUser(dto: SignUpDto, res: Response) {
-    const { password, email, userName, firstName, lastName } = dto;
-
-    const foundUser = await this.userDB.user.findUnique({
-      where: { email },
-    });
-    if (foundUser) {
-      throw new BadRequestException(`${email} already exist please login`);
-    }
-
-    const hashedPassword = await this.hashPassword(password);
-
-    const newUser = await this.userDB.user.create({
-      data: {
-        hashedPassword,
-        email: email.toLowerCase(),
-        userName,
-        firstName,
-        lastName,
-      },
-    });
-
-    if (!newUser) {
-      throw new BadRequestException("Something went wrong");
-    }
-    // todo: assign token to user
-    const token = await this.signToken({
-      id: newUser.id,
-      email: newUser.email,
-      role: newUser.role,
-    });
-    // todo: check availability of token
-    if (!token) {
-      throw new ForbiddenException("Unauthorized");
-    }
-    // todo: Add token to cookie
-    res.cookie("token", token, { httpOnly: true });
-    delete newUser.hashedPassword;
-
-    res.status(HttpStatus.CREATED).json(newUser);
-  }
-  // ? RETAILER CREATE NEW USER //
-  async retailCreateUser(dto: SignUpDto, res: Response) {
-    const { password, email, userName, firstName, lastName } = dto;
-
-    const foundUser = await this.userDB.user.findUnique({
-      where: { email },
-    });
-    if (foundUser) {
-      throw new BadRequestException(`${email} already exist please login`);
-    }
-
-    const hashedPassword = await this.hashPassword(password);
-
-    const newUser = await this.userDB.user.create({
-      data: {
-        hashedPassword,
-        email: email.toLowerCase(),
-        userName,
-        firstName,
-        lastName,
-        role: "SELLER",
-      },
-    });
-
-    if (!newUser) {
-      throw new BadRequestException("Something went wrong");
-    }
-    // todo: assign token to user
-    const token = await this.signToken({
-      id: newUser.id,
-      email: newUser.email,
-      role: newUser.role,
-    });
-    // todo: check availability of token
-    if (!token) {
-      throw new ForbiddenException("Unauthorized");
-    }
-    // todo: Add token to cookie
-    res.cookie("token", token, { httpOnly: true });
-    delete newUser.hashedPassword;
-
-    res.status(HttpStatus.CREATED).json(newUser);
+    res.status(HttpStatus.OK).json({ status: HttpStatus.OK, token, user });
   }
 
   // ? LOGOUT //
@@ -146,7 +107,6 @@ export class AuthService {
   }
 
   // ? HELPERS //
-
   async hashPassword(password: string) {
     const salt = 10;
     return await bcrypt.hash(password, salt);

@@ -7,6 +7,7 @@ import {
 } from "class-validator";
 export class UpdateUserDto {
   @IsEmail()
+  @IsOptional()
   public email?: string;
 
   @IsNotEmpty()
@@ -18,11 +19,6 @@ export class UpdateUserDto {
   @IsNotEmpty()
   @IsString()
   @IsOptional()
-  public userName?: string;
-
-  @IsNotEmpty()
-  @IsString()
-  @IsOptional()
   public firstName?: string;
 
   @IsNotEmpty()
@@ -30,7 +26,11 @@ export class UpdateUserDto {
   @IsOptional()
   public lastName?: string;
 
-  // @IsNotEmpty()
-  // @IsString()
-  // public token?: string;
+  @IsNotEmpty()
+  @IsOptional()
+  public state?: string;
+
+  @IsNotEmpty()
+  @IsOptional()
+  public phoneNumber?: string;
 }

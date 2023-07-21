@@ -7,8 +7,18 @@ import { v2 as cloudinary } from "cloudinary";
 import { CLOUD_NAME, API_KEY, API_SECRET } from "./constants";
 import { CommentModule } from "./comment/comment.module";
 import { AppController } from "./app.controller";
+import { AdminModule } from "./admin/admin.module";
+import { AccountModule } from "./account/account.module";
 @Module({
-  imports: [AuthModule, PrismaModule, UserModule, ProductModule, CommentModule],
+  imports: [
+    AuthModule,
+    PrismaModule,
+    UserModule,
+    ProductModule,
+    CommentModule,
+    AdminModule,
+    AccountModule,
+  ],
   controllers: [AppController],
 })
 export class AppModule {

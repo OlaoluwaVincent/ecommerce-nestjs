@@ -34,7 +34,7 @@ export class CommentService {
     // add the comment and relate it to the product
     const comment = await this.DataBase.comment.create({
       data: {
-        text: createCommentDto.comment,
+        comment: createCommentDto.comment,
         rating: createCommentDto.rating,
         owner: {
           connect: { id: userId },

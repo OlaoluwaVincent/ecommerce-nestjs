@@ -1,41 +1,35 @@
 import { PartialType } from "@nestjs/mapped-types";
-import {
-  Category,
-  CreateProductDto,
-  FileUploadDto,
-} from "./create-product.dto";
+import { Category, CreateProductDto } from "./create-product.dto";
 
 import {
-  IsNumber,
   IsPositive,
   IsString,
   IsArray,
   IsOptional,
   IsBoolean,
-  ValidateNested,
 } from "class-validator";
 import { Type } from "class-transformer";
 
 export class UpdateProductDto extends PartialType(CreateProductDto) {
   @IsOptional()
   @IsString()
-  readonly title?: string;
+  readonly productName?: string;
+
+  @IsOptional()
+  @IsString()
+  readonly price?: string;
+
+  @IsOptional()
+  @IsString()
+  readonly quantity?: string;
+
+  @IsOptional()
+  @IsString()
+  readonly minOrderQuantity?: string;
 
   @IsOptional()
   @IsString()
   readonly description?: string;
-
-  @IsOptional()
-  @IsNumber()
-  readonly price?: number;
-
-  @IsOptional()
-  @IsNumber()
-  readonly quantity?: number;
-
-  @IsOptional()
-  @IsArray()
-  images: string[];
 
   @IsOptional()
   @IsArray()
@@ -43,14 +37,9 @@ export class UpdateProductDto extends PartialType(CreateProductDto) {
   readonly categories?: Category[];
 
   @IsOptional()
-  @IsArray()
-  @Type(() => String)
-  readonly details?: string[];
-
-  @IsOptional()
-  @IsNumber()
+  @IsString()
   @IsPositive()
-  readonly discount?: number;
+  readonly discount?: string;
 
   @IsOptional()
   @IsBoolean()
