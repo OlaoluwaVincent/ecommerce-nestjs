@@ -56,8 +56,14 @@ export class ProductController {
 
   // ? Open to the public
   @Get(":id")
-  findOne(@Param("id") id: string, @Req() req: Request, @Res() res: Response) {
-    return this.productService.findOne(id, req, res);
+  findOne(@Param("id") id: string, @Res() res: Response) {
+    return this.productService.findOne(id, res);
+  }
+
+  // ? Open to the public
+  @Get("user/:userId")
+  findAllUserProducts(@Param("userId") userId: string, @Res() res: Response) {
+    return this.productService.findUserProducts(userId, res);
   }
 
   @Patch(":id")

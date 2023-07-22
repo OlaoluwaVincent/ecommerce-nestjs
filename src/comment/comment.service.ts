@@ -20,7 +20,7 @@ export class CommentService {
     productId: string,
   ) {
     const { userId } = req.user;
-    // this.InvalidTokenResponse(userId);
+    this.InvalidTokenResponse(userId);
 
     // Find the product
     const product = await this.DataBase.product.findUnique({
@@ -35,7 +35,9 @@ export class CommentService {
     const comment = await this.DataBase.comment.create({
       data: {
         comment: createCommentDto.comment,
-        rating: createCommentDto.rating,
+        rating: createCommentDto.rating
+          ? Number(createCommentDto.rating)
+          : null,
         owner: {
           connect: { id: userId },
         },
@@ -81,30 +83,19 @@ export class CommentService {
       );
     }
 
-    const productToDelete = await this.DataBase.product.findUnique({
-      where: { id: productId },
-    });
-    if (!productToDelete) {
-      throw new NotFoundException(`Product ${productId} not found`);
-    }
-
     // find the comment
     const comment = await this.DataBase.comment.findUnique({
       where: { id: commentId },
     });
     if (!comment) {
-      throw new NotFoundException(`Product ${commentId} not found`);
+      throw new NotFoundException(`comment ${commentId} not found`);
     }
 
-    if (commentId !== comment.id) {
-      throw new NotFoundException(`Comment ${commentId} not found`);
-    }
-
-    const deletedProduct = await this.DataBase.comment.delete({
+    const deletedComment = await this.DataBase.comment.delete({
       where: { id: commentId },
     });
 
-    if (!deletedProduct) {
+    if (!deletedComment) {
       throw new BadRequestException("Error deleting Comment");
     }
     res

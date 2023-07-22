@@ -2,7 +2,9 @@ import {
   Injectable,
   HttpStatus,
   ForbiddenException,
-  BadRequestException,
+  NotFoundException,
+  NotImplementedException,
+  UnauthorizedException,
 } from "@nestjs/common";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { PrismaService } from "prisma/prisma.service";
@@ -19,25 +21,76 @@ export class UserService {
   // ? THIS IS USED TO GET A USER DETAIL
   async findOne(id: string, request: Request, res: Response) {
     // Todo: Sign the token
-    const { userId } = request.user ? request.user : null;
+    const userId = request.user?.userId;
 
     this.InvalidTokenResponse(userId);
 
-    const user = await this.userDb.user.findUnique({ where: { id } });
+    try {
+      const user = await this.userDb.user.findUnique({ where: { id } });
 
-    delete user.hashedPassword;
-    delete user.createdAt;
-    delete user.updatedAt;
+      if (!user) {
+        throw new NotFoundException("User not found");
+      }
 
-    if (!user) {
-      throw new BadRequestException("Bad Request, user does not exist");
+      const sanitizedUser = {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        phoneNumber: user.phoneNumber,
+        onBoardStatus: user.onBoardStatus,
+        role: user.role,
+        state: user.state,
+        // Add any other necessary fields here
+      };
+
+      res.status(HttpStatus.OK).json({ successful: true, user: sanitizedUser });
+    } catch (error) {
+      res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .json({ successful: false, error: error.message });
     }
-
-    res.status(HttpStatus.OK).json({ status: HttpStatus.OK, user });
   }
 
-  // ? This is speicific for a user
+  async getAllBuyers(request: Request, res: Response) {
+    const userId = request.user?.userId;
+    this.InvalidTokenResponse(userId);
 
+    try {
+      const buyers = await this.userDb.user.findMany({
+        where: { role: "BUYER" },
+        select: { id: true },
+      });
+
+      res.status(HttpStatus.OK).json({ successful: true, buyers });
+    } catch (error) {
+      res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .json({ successful: false, error: error.message });
+    }
+  }
+
+  async getAllSellers(request: Request, res: Response) {
+    const userId = request.user?.userId;
+    this.InvalidTokenResponse(userId);
+
+    try {
+      const sellers = await this.userDb.user.findMany({
+        where: { role: "SELLER" },
+        select: { id: true },
+      });
+
+      res.status(HttpStatus.OK).json({ successful: true, sellers });
+    } catch (error) {
+      res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .json({ successful: false, error: error.message });
+    }
+  }
+
+  // ? Update a user
   async update(
     id: string,
     updateUserDto: UpdateUserDto,
@@ -45,58 +98,70 @@ export class UserService {
     res: Response,
   ) {
     const { userId } = request.user;
-    const { email, firstName, lastName, phoneNumber, state } = updateUserDto;
+    try {
+      const user = await this.userDb.user.findUnique({ where: { id: userId } });
 
-    this.InvalidTokenResponse(userId);
+      if (!user) {
+        throw new NotFoundException("User not found");
+      }
 
-    const user = await this.userDb.user.findUnique({ where: { id: userId } });
-    if (!user) {
-      throw new BadRequestException("No user found");
-    }
-
-    const updatedUser = await this.userDb.user.update({
-      where: { id },
-      data: {
-        email: email || user.email,
-        firstName: firstName || user.firstName,
-        lastName: lastName || user.lastName,
-        state: state || user.state,
-        phoneNumber: phoneNumber || user.phoneNumber,
-      },
-    });
-
-    if (!updatedUser) {
-      throw new BadRequestException({
-        status: HttpStatus.NOT_MODIFIED,
-        message: "Not Modified",
+      const updatedUser = await this.userDb.user.update({
+        where: { id },
+        data: {
+          email: updateUserDto.email || user.email,
+          firstName: updateUserDto.firstName || user.firstName,
+          lastName: updateUserDto.lastName || user.lastName,
+          state: updateUserDto.state || user.state,
+          phoneNumber: updateUserDto.phoneNumber || user.phoneNumber,
+        },
       });
-    }
 
-    delete user.hashedPassword;
+      if (!updatedUser) {
+        throw new NotImplementedException("No changes were made to the user");
+      }
 
-    res
-      .status(HttpStatus.CREATED)
-      .json({ status: HttpStatus.CREATED, user: updatedUser });
+      const sanitizedUser = { ...updatedUser };
+      delete sanitizedUser.hashedPassword;
+
+      res
+        .status(HttpStatus.OK)
+        .json({ status: HttpStatus.OK, user: sanitizedUser });
+    } catch (error) {}
   }
 
   // ? This is to delete a user account
-
   async remove(id: string, request: Request, res: Response) {
     const { userId } = request.user;
-    this.InvalidTokenResponse(userId);
-    if (id !== userId) {
-      throw new BadRequestException(
-        "Cannot be completed, you do not own this account",
-      );
-    }
 
-    const deletedUser = await this.userDb.user.delete({
-      where: { id: userId },
-    });
-    if (!deletedUser) {
-      throw new BadRequestException("Failed to Delete user, try again later");
+    this.InvalidTokenResponse(userId);
+
+    try {
+      if (id !== userId) {
+        throw new UnauthorizedException(
+          "You do not have permission to delete this account",
+        );
+      }
+
+      const deletedUser = await this.userDb.user.delete({
+        where: { id: userId },
+      });
+
+      if (!deletedUser) {
+        throw new NotFoundException("Failed to delete user, user not found");
+      }
+
+      // Logout the user after successful deletion
+      this.authService.logout(res);
+
+      // Respond with a success message if needed
+      res
+        .status(HttpStatus.OK)
+        .json({ status: HttpStatus.OK, message: "User deleted successfully" });
+    } catch (error) {
+      res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .json({ successful: false, error: error.message });
     }
-    this.authService.logout(res);
   }
 
   // ? HELPER FUNCTIONS

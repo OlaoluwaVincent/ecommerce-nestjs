@@ -42,7 +42,7 @@ export class AuthService {
     });
 
     if (!newUser) {
-      throw new BadRequestException("Something went wrong");
+      throw new BadRequestException("User not created, try again!");
     }
     // todo: assign token to user
     const token = await this.signToken({
@@ -52,7 +52,7 @@ export class AuthService {
     });
     // todo: check availability of token
     if (!token) {
-      throw new ForbiddenException("Unauthorized");
+      throw new ForbiddenException("Failed to assign token");
     }
     // todo: Add token to cookie
     res.cookie("token", token, { httpOnly: true });
@@ -60,7 +60,7 @@ export class AuthService {
 
     res
       .status(HttpStatus.CREATED)
-      .json({ status: HttpStatus.CREATED, token, user: newUser });
+      .json({ successful: true, token, user: newUser });
   }
 
   // ? LOGIN A USER //
@@ -97,7 +97,7 @@ export class AuthService {
 
     delete user.hashedPassword;
 
-    res.status(HttpStatus.OK).json({ status: HttpStatus.OK, token, user });
+    res.status(HttpStatus.OK).json({ successful: true, token, user });
   }
 
   // ? LOGOUT //

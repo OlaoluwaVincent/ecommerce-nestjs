@@ -1,11 +1,12 @@
-import { IsString, IsNotEmpty, IsNumber } from "class-validator";
+import { IsString, IsNotEmpty, IsOptional } from "class-validator";
 
 export class CreateCommentDto {
   @IsString()
   @IsNotEmpty()
   readonly comment: string;
 
-  @IsNumber()
+  @IsOptional()
+  @IsString()
   @IsNotEmpty()
-  readonly rating: number;
+  readonly rating: string;
 }
